@@ -59,8 +59,6 @@ trait RIterableOps[+A, R[+ _], +CC[_, _[+ _]], +C] { this: RIterable[A, R] =>
 
   def isEmpty: R[Boolean]
 
-  def knownSize: R[Int]
-
   def last: R[A]
 
   def lastOption: R[Option[A]]

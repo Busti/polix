@@ -47,9 +47,7 @@ trait RIterableOps[+A, R[+ _], +CC[_, _[+ _]], +C] { this: RIterable[A, R] =>
 
   def groupMap[K, B](key: A => K)(f: A => B): RMap[K, CC[B, R], R]
 
-  def groupMapReduceUndo[K, B](key: A => K)(f: A => B)(reduce: (B, B) => B)(
-    undo:                           (B, B) => B
-  ): RMap[K, B, R]
+  def groupMapReduceUndo[K, B](key: A => K)(f: A => B)(reduce: (B, B) => B)(undo: (B, B) => B): RMap[K, B, R]
 
   def grouped = ???
 
@@ -101,8 +99,7 @@ trait RIterableOps[+A, R[+ _], +CC[_, _[+ _]], +C] { this: RIterable[A, R] =>
 
   def splitAt(n: Int): (C, C)
 
-  def sum[B >: A](implicit num: Numeric[B]): R[B] =
-    reduceUndo(num.plus)(num.minus)
+  def sum[B >: A](implicit num: Numeric[B]): R[B] = reduceUndo(num.plus)(num.minus)
 
   def tail: C
 

@@ -10,7 +10,7 @@ trait RIterable[+A, R[+ _]] extends RIterableOps[A, R, RIterable, RIterable[A, R
   * @tparam A
   * @tparam R
   */
-trait RIterableOps[+A, R[+ _], +CC[_, _[+ _]], +C] { this: RIterable[A, R] =>
+trait RIterableOps[+A, R[+ _], +CC[_, _[+ _]], +C] {
   def collect[B](pf: PartialFunction[A, B]): CC[B, R]
 
   def collectFirst[B](pf: PartialFunction[A, B]): R[Option[B]]

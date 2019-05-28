@@ -14,8 +14,6 @@ trait RSeqOps[+A, R[+ _], +CC[_, _[+ _]], +C] extends RIterableOps[A, R, CC, C] 
 
   def distinctBy[B](f: A => B): C
 
-  def endsWith = ???
-
   def indexOf[B >: A](elem: B, from: Int = 0): R[Int]
 
   def indexOfSlice[B >: A](that: Seq[B], from: Int = 0): R[Int]
@@ -51,6 +49,4 @@ trait RSeqOps[+A, R[+ _], +CC[_, _[+ _]], +C] extends RIterableOps[A, R, CC, C] 
   def sortWith(lt: (A, A) => Boolean): C = sorted(Ordering.fromLessThan(lt))
 
   def sorted[B >: A](implicit ord: Ordering[B]): C
-
-  def startsWith = ???
 }

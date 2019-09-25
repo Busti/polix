@@ -17,8 +17,6 @@ trait RIterable[+A, R[_]] extends RIterableOps[A, R, RIterable, RIterable[A, R]]
   */
 trait RIterableOps[+A, R[_], +CC[_, _[_]], +C] {
 
-  def rIterableFactory: RIterableFactory[R, CC] = ???
-
   def collect[B](pf: PartialFunction[A, B]): CC[B, R] = ???
 
   def collectFirst[B](pf: PartialFunction[A, B]): R[Option[B]] = ???
@@ -71,7 +69,7 @@ trait RIterableOps[+A, R[_], +CC[_, _[_]], +C] {
 
   def lastOption: R[Option[A]] = ???
 
-  def map[B](f: A => B)(implicit R: Functor[R]): CC[B, R] = rIterableFactory.from(new OperatorMap())
+  def map[B](f: A => B)(implicit R: Functor[R]): CC[B, R] = ???
 
   def maxByOption[B >: A](f: A => B)(implicit cmp: Ordering[B]): R[Option[B]] = ???
 
@@ -105,7 +103,7 @@ trait RIterableOps[+A, R[_], +CC[_, _[_]], +C] {
 
   def splitAt(n: Int): (C, C) = ???
 
-  def sum[B >: A](implicit num: Numeric[B]): R[B] = reduceUndo(num.plus)(num.minus) = ???
+  def sum[B >: A](implicit num: Numeric[B]): R[B] = reduceUndo(num.plus)(num.minus)
 
   def tail: C = ???
 

@@ -1,9 +1,9 @@
 package polix.collection
 
-import cats.{Functor, Monad}
-import polix.reactive.Foldable2
+import cats.{Foldable, Functor, Monad}
+import polix.reactive.Scannable
 
-abstract class RSeq[A, G[_]: Monad: Foldable2] { self =>
+abstract class RSeq[A, G[_]: Monad: Scannable] { self =>
   sealed trait RSeqEvent
   case class Insert(index: Int, elem: A)                                                       extends RSeqEvent
   case class Remove(index: Int)                                                                extends RSeqEvent
@@ -14,7 +14,7 @@ abstract class RSeq[A, G[_]: Monad: Foldable2] { self =>
 
   def stream: G[RSeqEvent]
 
-  def materialize: G[Seq[A]] = implicitly[Foldable2[G]].foldLeft(self.stream, Seq.empty[A]) {
+  def materialize: G[Seq[A]] = implicitly[Scannable[G]].scan(self.stream, Seq.empty[A]) {
     case (acc, self.Insert(i, e))        => acc.take(i) ++ Seq(e) ++ acc.drop(i) // todo: use `list.splitAt`
     case (acc, self.Remove(i))           => acc.take(i) ++ acc.drop(i + 1)
     case (acc, self.Update(i, e))        => acc.updated(i, e)
@@ -37,7 +37,7 @@ abstract class RSeq[A, G[_]: Monad: Foldable2] { self =>
     }
   }
 
-  def sorted(implicit ord: Ordering[A]): RSeq[A, G] = new RSeq[A, G] {
+  /*def sorted(implicit ord: Ordering[A]): RSeq[A, G] = new RSeq[A, G] {
     override def stream: G[RSeqEvent] = implicitly[Foldable2[G]].foldLeft(self.stream, Seq.empty[A]) {
       case (acc, self.Insert(i, e)) => ???
       case (acc, self.Remove(i)) => ???
@@ -46,5 +46,5 @@ abstract class RSeq[A, G[_]: Monad: Foldable2] { self =>
       case (acc, self.Patch(i, o, r)) => ???
       case (acc, self.MassUpdate(ir, in)) => ???
     }
-  }
+  }*/
 }

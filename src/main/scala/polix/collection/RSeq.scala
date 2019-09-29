@@ -40,12 +40,12 @@ abstract class RSeq[A, G[_]: Monad: Scannable] { self =>
 
   /*def sorted(implicit ord: Ordering[A]): RSeq[A, G] = new RSeq[A, G] {
     override def stream: G[RSeqEvent] = implicitly[Foldable2[G]].foldLeft(self.stream, Seq.empty[A]) {
-      case (acc, self.Insert(i, e)) => ???
-      case (acc, self.Remove(i)) => ???
-      case (acc, self.Update(i, e)) => ???
-      case (acc, self.Combined(ir, ii, e)) => ???
-      case (acc, self.Patch(i, o, r)) => ???
-      case (acc, self.MassUpdate(ir, in)) => ???
+      case (acc, Insert(i, e)) => ???
+      case (acc, Remove(i)) => ???
+      case (acc, Update(i, e)) => ???
+      case (acc, Combined(ir, ii, e)) => ???
+      case (acc, Patch(i, o, r)) => ???
+      case (acc, MassUpdate(ir, in)) => ???
     }
   }*/
 }

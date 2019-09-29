@@ -15,14 +15,14 @@ abstract class RSeq[A, G[_]: Monad: Foldable2] { self =>
   def stream: G[RSeqEvent]
 
   def materialize: G[Seq[A]] = implicitly[Foldable2[G]].foldLeft(self.stream, Seq.empty[A]) {
-    case (acc, self.Insert(i, e))        => acc.take(i) :+ e +: acc.drop(i) // todo: use `list.splitAt`
+    case (acc, self.Insert(i, e))        => acc.take(i) ++ Seq(e) ++ acc.drop(i) // todo: use `list.splitAt`
     case (acc, self.Remove(i))           => acc.take(i) ++ acc.drop(i + 1)
     case (acc, self.Update(i, e))        => acc.updated(i, e)
     case (acc, self.Combined(ir, ii, e)) => (acc.take(ir) ++ acc.drop(ir + 1)).updated(ii, e)
     case (acc, self.Patch(i, o, r))      => acc.patch(i, o, r)
     case (acc, self.MassUpdate(ir, in))  =>
       in.iterator.foldLeft(ir.iterator.foldLeft(acc) { case (a, i) => a.take(i) ++ a.drop(i + 1) }) {
-        case (a, (i, e)) => a.take(i) :+ e +: a.drop(i)
+        case (a, (i, e)) => a.take(i) ++ Seq(e) ++ a.drop(i)
       }
   }
 

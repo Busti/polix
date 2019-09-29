@@ -49,3 +49,9 @@ abstract class RSeq[A, G[_]: Monad: Scannable] { self =>
     }
   }*/
 }
+
+object RSeq {
+  def from[A, G[_]: Monad: Scannable](initialStream: G[RSeqEvent[A]]): RSeq[A, G] = new RSeq[A, G] {
+    override def stream: G[RSeqEvent[A]] = initialStream
+  }
+}

@@ -20,11 +20,11 @@ val result: Observable[RSeqEvent[Double]] = output.stream
 
 result.foreach(println)
 
-input +=  1                         // => Append(2)
-input +=  2                         // => Append(4)
-input.prepend(0)                    // => Prepend(0)
-input.insert(2, 1.5)                // => Insertion(2, 3)
-input ++= List(10, 11, 12)          // => AppendAll(List(20, 22, 24))
+input +=  1                      // => Append(2)
+input +=  2                      // => Append(4)
+input.prepend(0)                 // => Prepend(0)
+input.insert(2, 1.5)             // => Insertion(2, 3)
+input ++= List(10, 11, 12)       // => AppendAll(List(20, 22, 24))
 input.patch(4, List(5, 6, 7), 0) // => Patch(3, List(10, 12, 14), 0)
 ```
 

@@ -5,8 +5,10 @@ A Library for Incremental Collections
 Polix is a Scala library that abstracts over consecutive changes made to an imaginary mutable collection.
 The main goal of the library is to aid the usage of collections in Functional Reactive Programming (FRP).  
 
-It is a further development of the design patterns shown in the 2013 Paper [Higher-Order Reactive Programming with Incremental Lists](https://link.springer.com/chapter/10.1007/978-3-642-39038-8_29),
+It loosely based on the design patterns shown in the 2013 Paper [Higher-Order Reactive Programming with Incremental Lists](https://link.springer.com/chapter/10.1007/978-3-642-39038-8_29),
 by Ingo Maier and Martin Odersky, but it aims to be agnostic in regards to the streaming library used, instead of providing it's own implementation.
+
+### Examples
 
 Polix provides a set of types each representing a collection similar to those found in the `scala.collection` library.  
 For example a Sequence can be represented by the `RSeq` type.
@@ -20,8 +22,8 @@ val result: Observable[RSeqEvent[Double]] = output.stream
 
 result.foreach(println)
 
-input +=  1                      // => Append(2)
-input +=  2                      // => Append(4)
+input += 1                       // => Append(2)
+input += 2                       // => Append(4)
 input.prepend(0)                 // => Prepend(0)
 input.insert(2, 1.5)             // => Insertion(2, 3)
 input ++= List(10, 11, 12)       // => AppendAll(List(20, 22, 24))

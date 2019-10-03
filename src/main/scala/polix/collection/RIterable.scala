@@ -1,9 +1,9 @@
 package polix.collection
 
-import polix.reactive.Source
+import cats.Functor
 
 trait RIterable[+A, +G[_]] extends RIterableOps[A, G, ({ type L[+T] = RIterable[T, G]})#L, RIterable[A, G]] {
-  def stream(implicit G: Source[G]): G[E]
+  def stream: G[E]
 }
 
 sealed trait RIterableOps[+A, +G[_], +CC[_], +C] {

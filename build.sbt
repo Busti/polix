@@ -13,6 +13,7 @@ resolvers ++= Seq(
 libraryDependencies ++= Seq(
   "org.typelevel" %% "cats-core"   % "2.0.0",
   "org.typelevel" %% "cats-effect" % "2.0.0",
-  "io.monix"      %% "monix"       % "3.0.0",
-  "org.scalatest" %% "scalatest"   % "3.0.8" % "test"
+  "org.scalatest" %% "scalatest"   % "3.0.8" % "test",
+  "io.monix"      %% "monix"       % "3.0.0" % "test",
+  "co.fs2"        %% "fs2-core"    % "2.0.1" % "test"
 )

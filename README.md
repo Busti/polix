@@ -16,7 +16,7 @@ It's usage is analogous to scala's `Seq`, with the difference that each operator
 with the operator applied to all changes made to that original collection.
 
 ```scala
-val input:  VBuffer[Double, Subject]      = VSeq[Double](PublishSubject)
+val input:  VBuffer[Double, Subject]      = VBuffer[Double](PublishSubject)
 val output: RSeq[Double, Observable]      = input.map(n => n * 2)
 val result: Observable[RSeqEvent[Double]] = output.stream
 

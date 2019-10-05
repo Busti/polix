@@ -23,10 +23,15 @@ trait RSeq[A, +G[_]] extends RIterable[A, G] with RSeqOps[A, G, RSeq, RSeq[A, G]
 
   def map[B, J[x] >: G[x] : Functor](f: A => B): RSeq[B, J] = new RSeq[B, J] {
     override def stream: J[RSeqEvent] = Functor[J].map(self.stream) {
+      case self.Append(elem)                                 => Append(f(elem))
+      case self.Prepend(elem)                                => Prepend(f(elem))
       case self.Insert(index, elem)                          => Insert(index, f(elem))
       case self.Remove(index)                                => Remove(index)
       case self.Update(index, elem)                          => Update(index, f(elem))
       case self.Combined(indexRemoval, indexInsertion, elem) => Combined(indexRemoval, indexInsertion, f(elem))
+      case self.AppendAll(elems)                             => AppendAll(elems.iterator.map(f))
+      case self.PrependAll(elems)                            => PrependAll(elems.iterator.map(f))
+      case self.InsertAll(index, elems)                      => InsertAll(index, elems.iterator.map(f))
       case self.Patch(index, other, replaced)                => Patch(index, other.iterator.map(f), replaced)
       case self.MassUpdate(indicesRemoved, insertions) =>
         MassUpdate(indicesRemoved, insertions.iterator.map { case (i, e) => (i, f(e)) })

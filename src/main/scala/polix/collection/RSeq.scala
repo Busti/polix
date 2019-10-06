@@ -10,6 +10,7 @@ trait RSeq[A, +G[_]] extends RIterable[A, G] with RSeqOps[A, G, RSeq, RSeq[A, G]
   case class Prepend(elem: A)                                          extends RSeqEvent
   case class Insert(index: Int, elem: A)                               extends RSeqEvent
   case class Remove(index: Int)                                        extends RSeqEvent
+  case class RemoveElem(elem: A)                                       extends RSeqEvent
   case class Update(index: Int, elem: A)                               extends RSeqEvent
   case class Combined(indexRemoval: Int, indexInsertion: Int, elem: A) extends RSeqEvent
 
@@ -17,6 +18,7 @@ trait RSeq[A, +G[_]] extends RIterable[A, G] with RSeqOps[A, G, RSeq, RSeq[A, G]
   case class PrependAll(elems: IterableOnce[A])                                                extends RSeqEvent
   case class InsertAll(index: Int, elems: IterableOnce[A])                                     extends RSeqEvent
   case class RemoveAll(index: Int, count: Int)                                                 extends RSeqEvent
+  case class RemoveAllElems(elems: IterableOnce[A])                                            extends RSeqEvent
   case class Patch(index: Int, other: IterableOnce[A], replaced: Int)                          extends RSeqEvent
   case class MassUpdate(indicesRemoved: IterableOnce[Int], insertions: IterableOnce[(Int, A)]) extends RSeqEvent
 
@@ -28,12 +30,14 @@ trait RSeq[A, +G[_]] extends RIterable[A, G] with RSeqOps[A, G, RSeq, RSeq[A, G]
       case self.Prepend(elem)                                => Prepend(f(elem))
       case self.Insert(index, elem)                          => Insert(index, f(elem))
       case self.Remove(index)                                => Remove(index)
+      case self.RemoveElem(elem)                             => RemoveElem(f(elem))
       case self.Update(index, elem)                          => Update(index, f(elem))
       case self.Combined(indexRemoval, indexInsertion, elem) => Combined(indexRemoval, indexInsertion, f(elem))
       case self.AppendAll(elems)                             => AppendAll(elems.iterator.map(f))
       case self.PrependAll(elems)                            => PrependAll(elems.iterator.map(f))
       case self.InsertAll(index, elems)                      => InsertAll(index, elems.iterator.map(f))
       case self.RemoveAll(index, count)                      => RemoveAll(index, count)
+      case self.RemoveAllElems(elems)                        => RemoveAllElems(elems.iterator.map(f))
       case self.Patch(index, other, replaced)                => Patch(index, other.iterator.map(f), replaced)
       case self.MassUpdate(indicesRemoved, insertions) =>
         MassUpdate(indicesRemoved, insertions.iterator.map { case (i, e) => (i, f(e)) })

@@ -7,7 +7,7 @@ import polix.collection.RSeq
 import polix.reactive.Sink
 import monix.reactive._
 
-abstract class VBuffer[A, G[_] : Sink] extends RSeq[A, G] with VGrowable[A] {
+abstract class VBuffer[A, G[_] : Sink] extends RSeq[A, G] with VGrowable[A] with VShrinkable[A] {
   override def addOne(elem: A): this.type = {
     Sink[G].onNext(stream)(Append(elem))
     this
@@ -42,5 +42,19 @@ abstract class VBuffer[A, G[_] : Sink] extends RSeq[A, G] with VGrowable[A] {
 
   def remove(index: Int): Unit = Sink[G].onNext(stream)(Remove(index))
 
-  def removeAll(index: Int, count: Int): Unit = Sink[G].onNext(stream)(RemoveAll(index, count))
+  def remove(index: Int, count: Int): Unit = Sink[G].onNext(stream)(RemoveAll(index, count))
+
+  override def subtractOne(elem: A): this.type = {
+    Sink[G].onNext(stream)(RemoveElem(elem))
+    this
+  }
+
+  @inline final def remove(elem: A): this.type = subtractOne(elem)
+
+  override def subtractAll(elems: IterableOnce[A]): this.type = {
+    Sink[G].onNext(stream)(RemoveAllElems(elems))
+    this
+  }
+
+  @inline final def remove(elems: IterableOnce[A]): this.type = subtractAll(elems)
 }

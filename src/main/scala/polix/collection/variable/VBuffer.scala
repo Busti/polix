@@ -57,4 +57,9 @@ abstract class VBuffer[A, G[_] : Sink] extends RSeq[A, G] with VGrowable[A] with
   }
 
   @inline final def remove(elems: IterableOnce[A]): this.type = subtractAll(elems)
+
+  def patchInPlace(from: Int, patch: IterableOnce[A], replaced: Int): this.type = {
+    Sink[G].onNext(stream)(Patch(from, patch, replaced))
+    this
+  }
 }

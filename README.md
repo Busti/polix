@@ -1,5 +1,5 @@
 # Polix
-A Library for Incremental Collections
+A Library for Reactive Collections
 
 ## Overview
 Polix is a Scala library that abstracts over consecutive changes made to an imaginary mutable collection.

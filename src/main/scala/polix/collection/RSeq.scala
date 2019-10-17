@@ -5,27 +5,27 @@ import cats.Functor
 import scala.language.{higherKinds, reflectiveCalls}
 
 trait RSeq[A, +G[_]] extends RIterable[A, G] with RSeqOps[A, G, RSeq, RSeq[A, G]] { self =>
-  sealed trait RSeqEvent
-  case class Append(elem: A)                                           extends RSeqEvent
-  case class Prepend(elem: A)                                          extends RSeqEvent
-  case class Insert(index: Int, elem: A)                               extends RSeqEvent
-  case class Remove(index: Int)                                        extends RSeqEvent
-  case class RemoveElem(elem: A)                                       extends RSeqEvent
-  case class Update(index: Int, elem: A)                               extends RSeqEvent
-  case class Combined(indexRemoval: Int, indexInsertion: Int, elem: A) extends RSeqEvent
+  sealed trait RSeqOperation
+  case class Append(elem: A)                                           extends RSeqOperation
+  case class Prepend(elem: A)                                          extends RSeqOperation
+  case class Insert(index: Int, elem: A)                               extends RSeqOperation
+  case class Remove(index: Int)                                        extends RSeqOperation
+  case class RemoveElem(elem: A)                                       extends RSeqOperation
+  case class Update(index: Int, elem: A)                               extends RSeqOperation
+  case class Combined(indexRemoval: Int, indexInsertion: Int, elem: A) extends RSeqOperation
 
-  case class AppendAll(elems: IterableOnce[A])                                                 extends RSeqEvent
-  case class PrependAll(elems: IterableOnce[A])                                                extends RSeqEvent
-  case class InsertAll(index: Int, elems: IterableOnce[A])                                     extends RSeqEvent
-  case class RemoveAll(index: Int, count: Int)                                                 extends RSeqEvent
-  case class RemoveAllElems(elems: IterableOnce[A])                                            extends RSeqEvent
-  case class Patch(index: Int, other: IterableOnce[A], replaced: Int)                          extends RSeqEvent
-  case class MassUpdate(indicesRemoved: IterableOnce[Int], insertions: IterableOnce[(Int, A)]) extends RSeqEvent
+  case class AppendAll(elems: IterableOnce[A])                                                 extends RSeqOperation
+  case class PrependAll(elems: IterableOnce[A])                                                extends RSeqOperation
+  case class InsertAll(index: Int, elems: IterableOnce[A])                                     extends RSeqOperation
+  case class RemoveAll(index: Int, count: Int)                                                 extends RSeqOperation
+  case class RemoveAllElems(elems: IterableOnce[A])                                            extends RSeqOperation
+  case class Patch(index: Int, other: IterableOnce[A], replaced: Int)                          extends RSeqOperation
+  case class MassUpdate(indicesRemoved: IterableOnce[Int], insertions: IterableOnce[(Int, A)]) extends RSeqOperation
 
-  type E = RSeqEvent
+  type E = RSeqOperation
 
   def map[B, J[x] >: G[x] : Functor](f: A => B): RSeq[B, J] = new RSeq[B, J] {
-    override def stream: J[RSeqEvent] = Functor[J].map(self.stream) {
+    override def stream: J[RSeqOperation] = Functor[J].map(self.stream) {
       case self.Append(elem)                                 => Append(f(elem))
       case self.Prepend(elem)                                => Prepend(f(elem))
       case self.Insert(index, elem)                          => Insert(index, f(elem))

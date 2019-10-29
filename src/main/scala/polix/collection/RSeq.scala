@@ -1,47 +1,36 @@
 package polix.collection
 
 import cats.Functor
+import polix.collection.RSeqMutations._
 
+import scala.collection.IterableOnce
 import scala.language.{higherKinds, reflectiveCalls}
 
+object RSeqMutations {
+  sealed trait RSeqMutation[A]
+  case class Append[A](elem: A)                    extends RSeqMutation[A]
+  case class Prepend[A](elem: A)                   extends RSeqMutation[A]
+  case class Insert[A](index: Int, elem: A)        extends RSeqMutation[A]
+  case class Update[A](index: Int, elem: A)        extends RSeqMutation[A]
+  case class Move[A](fromIndex: Int, toIndex: Int) extends RSeqMutation[A]
+  case class RemoveIndex[A](index: Int)            extends RSeqMutation[A]
+  case class RemoveElem[A](elem: A)                extends RSeqMutation[A]
+}
+
 trait RSeq[A, +G[_]] extends RIterable[A, G] with RSeqOps[A, G, RSeq, RSeq[A, G]] { self =>
-  sealed trait RSeqOperation
-  case class Append(elem: A)                                           extends RSeqOperation
-  case class Prepend(elem: A)                                          extends RSeqOperation
-  case class Insert(index: Int, elem: A)                               extends RSeqOperation
-  case class Remove(index: Int)                                        extends RSeqOperation
-  case class RemoveElem(elem: A)                                       extends RSeqOperation
-  case class Update(index: Int, elem: A)                               extends RSeqOperation
-  case class Combined(indexRemoval: Int, indexInsertion: Int, elem: A) extends RSeqOperation
+  type M = RSeqMutation[A]
 
-  case class AppendAll(elems: IterableOnce[A])                                                 extends RSeqOperation
-  case class PrependAll(elems: IterableOnce[A])                                                extends RSeqOperation
-  case class InsertAll(index: Int, elems: IterableOnce[A])                                     extends RSeqOperation
-  case class RemoveAll(index: Int, count: Int)                                                 extends RSeqOperation
-  case class RemoveAllElems(elems: IterableOnce[A])                                            extends RSeqOperation
-  case class Patch(index: Int, other: IterableOnce[A], replaced: Int)                          extends RSeqOperation
-  case class MassUpdate(indicesRemoved: IterableOnce[Int], insertions: IterableOnce[(Int, A)]) extends RSeqOperation
-
-  type E = RSeqOperation
-
-  def map[B, J[x] >: G[x] : Functor](f: A => B): RSeq[B, J] = new RSeq[B, J] {
-    override def stream: J[RSeqOperation] = Functor[J].map(self.stream) {
-      case self.Append(elem)                                 => Append(f(elem))
-      case self.Prepend(elem)                                => Prepend(f(elem))
-      case self.Insert(index, elem)                          => Insert(index, f(elem))
-      case self.Remove(index)                                => Remove(index)
-      case self.RemoveElem(elem)                             => RemoveElem(f(elem))
-      case self.Update(index, elem)                          => Update(index, f(elem))
-      case self.Combined(indexRemoval, indexInsertion, elem) => Combined(indexRemoval, indexInsertion, f(elem))
-      case self.AppendAll(elems)                             => AppendAll(elems.iterator.map(f))
-      case self.PrependAll(elems)                            => PrependAll(elems.iterator.map(f))
-      case self.InsertAll(index, elems)                      => InsertAll(index, elems.iterator.map(f))
-      case self.RemoveAll(index, count)                      => RemoveAll(index, count)
-      case self.RemoveAllElems(elems)                        => RemoveAllElems(elems.iterator.map(f))
-      case self.Patch(index, other, replaced)                => Patch(index, other.iterator.map(f), replaced)
-      case self.MassUpdate(indicesRemoved, insertions) =>
-        MassUpdate(indicesRemoved, insertions.iterator.map { case (i, e) => (i, f(e)) })
-    }
+  override def map[B, G2[x] >: G : Functor](f: A => B): RSeq[B, G2] = new RSeq[B, G2] {
+    override def stream: G2[IterableOnce[RSeqMutation[B]]] =
+      Functor[G2].map(self.stream)(_.iterator.map {
+        case Append(elem)             => Append(f(elem))
+        case Prepend(elem)            => Prepend(f(elem))
+        case Insert(index, elem)      => Insert(index, f(elem))
+        case Update(index, elem)      => Update(index, f(elem))
+        case Move(fromIndex, toIndex) => Move(fromIndex, toIndex)
+        case RemoveIndex(index)       => RemoveIndex(index)
+        case RemoveElem(elem)         => RemoveElem(f(elem))
+      })
   }
 }
 

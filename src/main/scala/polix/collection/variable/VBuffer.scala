@@ -1,11 +1,10 @@
 package polix.collection.variable
 
-import cats.Applicative
-
 import scala.language.higherKinds
 import polix.collection.RSeq
 import polix.reactive.Sink
-import monix.reactive._
+
+import polix.collection.RSeqMutations._
 
 abstract class VBuffer[A, G[_] : Sink] extends RSeq[A, G] with VGrowable[A] with VShrinkable[A] {
   override def addOne(elem: A): this.type = {

@@ -29,8 +29,8 @@ trait RSeq[A, +G[_]] extends RIterable[A, G] with RSeqOps[A, G, RSeq, RSeq[A, G]
 
   type M = RSeqMutation[A]
 
-  def map[B, J[x] >: G[x] : Functor](f: A => B): RSeq[B, J] = new RSeq[B, J] {
-    override def stream: J[RSeqMutation[B]] = Functor[J].map(self.stream) {
+  def map[B, G2[x] >: G[x] : Functor](f: A => B): RSeq[B, G2] = new RSeq[B, G2] {
+    override def stream: G2[RSeqMutation[B]] = Functor[G2].map(self.stream) {
       case Append(elem)                                 => Append(f(elem))
       case Prepend(elem)                                => Prepend(f(elem))
       case Insert(index, elem)                          => Insert(index, f(elem))

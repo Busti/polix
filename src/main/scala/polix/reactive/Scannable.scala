@@ -4,3 +4,7 @@ package polix.reactive
 trait Scannable[F[_]] {
   def scan[A, B](fa: F[A], b: B)(f: (B, A) => B): F[B]
 }
+
+object Scannable {
+  @inline def apply[F[_]](implicit scannable: Scannable[F]): Scannable[F] = scannable
+}

@@ -53,9 +53,17 @@ trait RSeq[A, +G[_]] extends RIterable[A, G] with RSeqOps[A, G, RSeq, RSeq[A, G]
   def sorted[A2 >: A, G2[x] >: G[x] : Scannable](implicit ord: Ordering[A2]): RSeq[A2, G2] = new RSeq[A2, G2] {
     def insert(elem: A, seq: Seq[A]): (Seq[A], Int) = ???
 
+    def insertion(elem: A, seq: Seq[A]): (Seq[A], Insert[A2]) = {
+      val (acc, res) = insert(elem, seq)
+      (acc, Insert(res, elem))
+    }
+
     override def stream: G2[RSeqMutation[A2]] =
       Scannable[G2].scanAccumulate(self.stream, Seq.empty[A])((acc, mut) => mut match {
-        case Append(elem) => (acc :+ elem, Insert(???, elem))
+        case Append(elem) => insertion(elem, acc)
+        case Prepend(elem) => insertion(elem, acc)
+        case Insert(_, elem) => insertion(elem, acc)
+        case Remove(index) => ???
       })
   }
 }

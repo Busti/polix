@@ -2,6 +2,7 @@ package polix.collection
 
 import cats.Functor
 import polix.collection.RSeqMutations._
+import polix.reactive.Scannable
 
 import scala.language.{higherKinds, reflectiveCalls}
 
@@ -14,14 +15,14 @@ object RSeqMutations {
   case class RemoveElem[A](elem: A)                                       extends RSeqMutation[A]
   case class Update[A](index: Int, elem: A)                               extends RSeqMutation[A]
   case class Combined[A](indexRemoval: Int, indexInsertion: Int, elem: A) extends RSeqMutation[A]
-
-  case class AppendAll[A](elems: IterableOnce[A])                                                 extends RSeqMutation[A]
-  case class PrependAll[A](elems: IterableOnce[A])                                                extends RSeqMutation[A]
-  case class InsertAll[A](index: Int, elems: IterableOnce[A])                                     extends RSeqMutation[A]
-  case class RemoveAll[A](index: Int, count: Int)                                                 extends RSeqMutation[A]
-  case class RemoveAllElems[A](elems: IterableOnce[A])                                            extends RSeqMutation[A]
-  case class Patch[A](index: Int, other: IterableOnce[A], replaced: Int)                          extends RSeqMutation[A]
-  case class MassUpdate[A](indicesRemoved: IterableOnce[Int], insertions: IterableOnce[(Int, A)]) extends RSeqMutation[A]
+  case class AppendAll[A](elems: IterableOnce[A])                         extends RSeqMutation[A]
+  case class PrependAll[A](elems: IterableOnce[A])                        extends RSeqMutation[A]
+  case class InsertAll[A](index: Int, elems: IterableOnce[A])             extends RSeqMutation[A]
+  case class RemoveAll[A](index: Int, count: Int)                         extends RSeqMutation[A]
+  case class RemoveAllElems[A](elems: IterableOnce[A])                    extends RSeqMutation[A]
+  case class Patch[A](index: Int, other: IterableOnce[A], replaced: Int)  extends RSeqMutation[A]
+  case class MassUpdate[A](indicesRemoved: IterableOnce[Int], insertions: IterableOnce[(Int, A)])
+      extends RSeqMutation[A]
 
 }
 
@@ -47,6 +48,15 @@ trait RSeq[A, +G[_]] extends RIterable[A, G] with RSeqOps[A, G, RSeq, RSeq[A, G]
       case MassUpdate(indicesRemoved, insertions) =>
         MassUpdate(indicesRemoved, insertions.iterator.map { case (i, e) => (i, f(e)) })
     }
+  }
+
+  def sorted[A2 >: A, G2[x] >: G[x] : Scannable](implicit ord: Ordering[A2]): RSeq[A2, G2] = new RSeq[A2, G2] {
+    def insert(elem: A, seq: Seq[A]): (Seq[A], Int) = ???
+
+    override def stream: G2[RSeqMutation[A2]] =
+      Scannable[G2].scanAccumulate(self.stream, Seq.empty[A])((acc, mut) => mut match {
+        case Append(elem) => (acc :+ elem, Insert(???, elem))
+      })
   }
 }
 

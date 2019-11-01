@@ -4,6 +4,7 @@ import cats.Functor
 import polix.collection.RSeqMutations._
 import polix.reactive.Scannable
 
+import scala.collection.IterableOnce
 import scala.language.{higherKinds, reflectiveCalls}
 
 object RSeqMutations {
@@ -51,19 +52,28 @@ trait RSeq[A, +G[_]] extends RIterable[A, G] with RSeqOps[A, G, RSeq, RSeq[A, G]
   }
 
   def sorted[A2 >: A, G2[x] >: G[x] : Scannable](implicit ord: Ordering[A2]): RSeq[A2, G2] = new RSeq[A2, G2] {
-    def insert(elem: A, seq: Seq[A]): (Seq[A], Int) = ???
+    case class Entry(formerIndex: Int, elem: A)
 
-    def insertion(elem: A, seq: Seq[A]): (Seq[A], Insert[A2]) = {
+    def insert(elem: A, seq: Seq[Entry]): (Seq[Entry], Int) = seq.while
+
+    def insertion(elem: A, seq: Seq[Entry]): (Seq[Entry], Insert[A2]) = {
       val (acc, res) = insert(elem, seq)
       (acc, Insert(res, elem))
     }
 
     override def stream: G2[RSeqMutation[A2]] =
-      Scannable[G2].scanAccumulate(self.stream, Seq.empty[A])((acc, mut) => mut match {
+      Scannable[G2].scanAccumulate(self.stream, Seq.empty[Entry])((acc, mut) => mut match {
         case Append(elem) => insertion(elem, acc)
         case Prepend(elem) => insertion(elem, acc)
         case Insert(_, elem) => insertion(elem, acc)
-        case Remove(index) => ???
+        case Remove(index) =>
+          val sortedIndex = acc.indexWhere(_.formerIndex == index)
+          (acc.patch(sortedIndex, Nil, 1), Remove(sortedIndex))
+        case RemoveElem(elem) => (acc, RemoveElem(elem))
+        case Update(index, elem) =>
+          val sortedIndex = acc.indexWhere(_.formerIndex == index)
+          (acc.patch(sortedIndex, Iterable.single(elem), 1), Update(sortedIndex, elem))
+
       })
   }
 }

@@ -1,6 +1,6 @@
 package polix.util
 
-object SortedSeqUtils {
+object SeqUtils {
   implicit class SeqOps[T](val wrapped: Seq[T]) extends AnyVal {
     def sortedInsert(elem: T)(implicit ord: Ordering[T]): (Seq[T], Int) = {
       val pos = wrapped.indexWhere(elem => ord.gt(elem, elem))

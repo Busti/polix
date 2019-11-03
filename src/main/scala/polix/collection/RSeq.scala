@@ -1,8 +1,11 @@
 package polix.collection
 
+import java.util
+
 import cats.Functor
 import polix.collection.RSeqMutations._
 import polix.reactive.Scannable
+import polix.util.SeqUtils._
 
 import scala.collection.IterableOnce
 import scala.language.{higherKinds, reflectiveCalls}
@@ -51,30 +54,44 @@ trait RSeq[A, +G[_]] extends RIterable[A, G] with RSeqOps[A, G, RSeq, RSeq[A, G]
     }
   }
 
-  def sorted[A2 >: A, G2[x] >: G[x] : Scannable](implicit ord: Ordering[A2]): RSeq[A2, G2] = new RSeq[A2, G2] {
-    case class Entry(formerIndex: Int, elem: A)
-
-    def insert(elem: A, seq: Seq[Entry]): (Seq[Entry], Int) = seq.while
-
-    def insertion(elem: A, seq: Seq[Entry]): (Seq[Entry], Insert[A2]) = {
-      val (acc, res) = insert(elem, seq)
-      (acc, Insert(res, elem))
-    }
+  def sorted[A2 >: A, G2[x] >: G[x] : Scannable](implicit ord: Ordering[A]): RSeq[A2, G2] = new RSeq[A2, G2] {
+    case class Repr(src: Seq[A], dst: Seq[A])
 
     override def stream: G2[RSeqMutation[A2]] =
-      Scannable[G2].scanAccumulate(self.stream, Seq.empty[Entry])((acc, mut) => mut match {
-        case Append(elem) => insertion(elem, acc)
-        case Prepend(elem) => insertion(elem, acc)
-        case Insert(_, elem) => insertion(elem, acc)
-        case Remove(index) =>
-          val sortedIndex = acc.indexWhere(_.formerIndex == index)
-          (acc.patch(sortedIndex, Nil, 1), Remove(sortedIndex))
-        case RemoveElem(elem) => (acc, RemoveElem(elem))
-        case Update(index, elem) =>
-          val sortedIndex = acc.indexWhere(_.formerIndex == index)
-          (acc.patch(sortedIndex, Iterable.single(elem), 1), Update(sortedIndex, elem))
+      Scannable[G2].scanAccumulate(self.stream, Repr(Vector.empty, Vector.empty)) { (acc, mut) =>
+        def insertion(index: Int, elem: A): (Repr, RSeqMutation[A2]) = {
+          val (src, idx) = acc.dst.sortedInsert(elem) // todo: use tree based impl
+          val dst        = acc.src.patch(index, Iterable.single(elem), 0)
+          (Repr(src, dst), Insert(idx, elem))
+        }
 
-      })
+        mut match {
+          case Append(elem)        => insertion(0, elem)
+          case Prepend(elem)       => insertion(acc.src.length, elem)
+          case Insert(index, elem) => insertion(index, elem)
+          case Remove(index) =>
+            val elem     = acc.src(index) // todo: do these in one operation
+            val src      = acc.src.remove(index)
+            val dstIndex = acc.dst.indexOf(elem)
+            val dst      = acc.dst.remove(dstIndex)
+            (Repr(src, dst), Remove(dstIndex))
+          case RemoveElem(elem) =>
+            (Repr(acc.src.filter(_ == elem), acc.dst.filter(_ == elem)), RemoveElem(elem))
+          case Update(index, elem) =>
+            val prevElem     = acc.src(index)
+            val prevDstIndex = acc.dst.indexOf(prevElem)
+            val (dst, idx) = acc.dst
+              .remove(prevDstIndex)
+              .sortedInsert(elem)
+            (Repr(acc.src.updated(index, elem), dst), Combined(prevDstIndex, idx, elem))
+          case Combined(indexRemoval, indexInsertion, elem) =>
+            val prevRemElem     = acc.src(indexRemoval)
+            val src = acc.src.remove(indexRemoval).insert(indexInsertion, elem)
+            val prevDstRemIndex = acc.dst.indexOf(prevRemElem)
+            val (dst, idx) = acc.dst.remove(prevDstRemIndex).sortedInsert(elem)
+            (Repr(src, dst), Combined(prevDstRemIndex, idx, elem))
+        }
+      }
   }
 }
 

@@ -4,6 +4,7 @@ import java.util
 
 import cats.Functor
 import polix.collection.RSeqMutations._
+import polix.collection.internal.operators.OperatorMap
 import polix.reactive.Scannable
 import polix.util.SeqUtils._
 
@@ -34,25 +35,7 @@ trait RSeq[A, +G[_]] extends RIterable[A, G] with RSeqOps[A, G, RSeq, RSeq[A, G]
 
   type M = RSeqMutation[A]
 
-  def map[B, G2[x] >: G[x] : Functor](f: A => B): RSeq[B, G2] = new RSeq[B, G2] {
-    override def stream: G2[RSeqMutation[B]] = Functor[G2].map(self.stream) {
-      case Append(elem)                                 => Append(f(elem))
-      case Prepend(elem)                                => Prepend(f(elem))
-      case Insert(index, elem)                          => Insert(index, f(elem))
-      case Remove(index)                                => Remove(index)
-      case RemoveElem(elem)                             => RemoveElem(f(elem))
-      case Update(index, elem)                          => Update(index, f(elem))
-      case Combined(indexRemoval, indexInsertion, elem) => Combined(indexRemoval, indexInsertion, f(elem))
-      case AppendAll(elems)                             => AppendAll(elems.iterator.map(f))
-      case PrependAll(elems)                            => PrependAll(elems.iterator.map(f))
-      case InsertAll(index, elems)                      => InsertAll(index, elems.iterator.map(f))
-      case RemoveAll(index, count)                      => RemoveAll(index, count)
-      case RemoveAllElems(elems)                        => RemoveAllElems(elems.iterator.map(f))
-      case Patch(index, other, replaced)                => Patch(index, other.iterator.map(f), replaced)
-      case MassUpdate(indicesRemoved, insertions) =>
-        MassUpdate(indicesRemoved, insertions.iterator.map { case (i, e) => (i, f(e)) })
-    }
-  }
+  def map[B, G2[x] >: G[x] : Functor](f: A => B): RSeq[B, G2] = new OperatorMap[A, B, G, G2](self, f)
 
   def sorted[A2 >: A, G2[x] >: G[x] : Scannable](implicit ord: Ordering[A2]): RSeq[A2, G2] = new RSeq[A2, G2] {
     case class Repr(src: Seq[A], dst: Seq[A])

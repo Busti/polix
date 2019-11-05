@@ -4,7 +4,7 @@ import java.util
 
 import cats.Functor
 import polix.collection.RSeqMutations._
-import polix.collection.internal.operators.OperatorMap
+import polix.collection.internal.operators.{OperatorMap, OperatorSorted}
 import polix.reactive.Scannable
 import polix.util.SeqUtils._
 
@@ -35,47 +35,11 @@ trait RSeq[A, +G[_]] extends RIterable[A, G] with RSeqOps[A, G, RSeq, RSeq[A, G]
 
   type M = RSeqMutation[A]
 
-  def map[B, G2[x] >: G[x] : Functor](f: A => B): RSeq[B, G2] = new OperatorMap[A, B, G, G2](self, f)
+  def map[B, G2[x] >: G[x] : Functor](f: A => B): RSeq[B, G2] =
+    new OperatorMap[A, B, G, G2](self, f)
 
-  def sorted[A2 >: A, G2[x] >: G[x] : Scannable](implicit ord: Ordering[A2]): RSeq[A2, G2] = new RSeq[A2, G2] {
-    case class Repr(src: Seq[A], dst: Seq[A])
-
-    override def stream: G2[RSeqMutation[A2]] =
-      Scannable[G2].scanAccumulate(self.stream, Repr(Vector.empty, Vector.empty)) { (acc, mut) =>
-        def insertion(index: Int, elem: A): (Repr, RSeqMutation[A2]) = {
-          val (src, idx) = acc.dst.sortedInsert(elem) // todo: use tree based impl
-          val dst        = acc.src.patch(index, Iterable.single(elem), 0)
-          (Repr(src, dst), Insert(idx, elem))
-        }
-
-        mut match {
-          case Append(elem)        => insertion(0, elem)
-          case Prepend(elem)       => insertion(acc.src.length, elem)
-          case Insert(index, elem) => insertion(index, elem)
-          case Remove(index) =>
-            val elem     = acc.src(index) // todo: do these in one operation
-            val src      = acc.src.remove(index)
-            val dstIndex = acc.dst.indexOf(elem)
-            val dst      = acc.dst.remove(dstIndex)
-            (Repr(src, dst), Remove(dstIndex))
-          case RemoveElem(elem) =>
-            (Repr(acc.src.filter(_ == elem), acc.dst.filter(_ == elem)), RemoveElem(elem))
-          case Update(index, elem) =>
-            val prevElem     = acc.src(index)
-            val prevDstIndex = acc.dst.indexOf(prevElem)
-            val (dst, idx) = acc.dst
-              .remove(prevDstIndex)
-              .sortedInsert(elem)
-            (Repr(acc.src.updated(index, elem), dst), Combined(prevDstIndex, idx, elem))
-          case Combined(indexRemoval, indexInsertion, elem) =>
-            val prevRemElem     = acc.src(indexRemoval)
-            val src = acc.src.remove(indexRemoval).insert(indexInsertion, elem)
-            val prevDstRemIndex = acc.dst.indexOf(prevRemElem)
-            val (dst, idx) = acc.dst.remove(prevDstRemIndex).sortedInsert(elem)
-            (Repr(src, dst), Combined(prevDstRemIndex, idx, elem))
-        }
-      }
-  }
+  def sorted[A2 >: A, G2[x] >: G[x] : Scannable](implicit ord: Ordering[A2]): RSeq[A2, G2] =
+    new OperatorSorted[A, A2, G, G2](self)
 }
 
 trait RSeqOps[+A, +G[_], +CC[_, _[_]], +C] extends RIterableOps[A, G, CC, C]

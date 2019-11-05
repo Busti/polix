@@ -54,7 +54,7 @@ trait RSeq[A, +G[_]] extends RIterable[A, G] with RSeqOps[A, G, RSeq, RSeq[A, G]
     }
   }
 
-  def sorted[A2 >: A, G2[x] >: G[x] : Scannable](implicit ord: Ordering[A]): RSeq[A2, G2] = new RSeq[A2, G2] {
+  def sorted[A2 >: A, G2[x] >: G[x] : Scannable](implicit ord: Ordering[A2]): RSeq[A2, G2] = new RSeq[A2, G2] {
     case class Repr(src: Seq[A], dst: Seq[A])
 
     override def stream: G2[RSeqMutation[A2]] =

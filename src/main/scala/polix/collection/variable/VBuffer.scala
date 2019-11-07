@@ -6,7 +6,7 @@ import polix.reactive.Sink
 import polix.collection.RSeqMutations._
 
 abstract class VBuffer[A, G[_] : Sink] extends RSeq[A, G] with MutationSink[G] with VGrowable[A] with VShrinkable[A] {
-  override def streamMutation(mutation: M)(G: Sink[G]): Unit = Sink[G].onNext(stream)(mutation)
+  override def streamMutation(mutation: RSeqMutation[A])(implicit G: Sink[G]): Unit = G.onNext(stream)(mutation)
 
   override def addOne(elem: A): this.type = {
     streamMutation(Append(elem))

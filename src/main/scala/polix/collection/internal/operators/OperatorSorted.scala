@@ -5,16 +5,16 @@ import polix.collection.RSeqMutations._
 import polix.reactive.Scannable
 import polix.util.SeqUtils._
 
-class OperatorSorted[A, A2, G[_], G2[x] >: G[x] : Scannable](
+class OperatorSorted[A, G[_], G2[x] >: G[x] : Scannable](
   source: RSeq[A, G]
 )(
-  implicit ord: Ordering[A2]
-) extends RSeq[A2, G2] {
+  implicit ord: Ordering[A]
+) extends RSeq[A, G2] {
   case class Repr(src: Seq[A], dst: Seq[A])
 
-  override def stream: G2[RSeqMutation[A2]] =
+  override def stream: G2[RSeqMutation[A]] =
     Scannable[G2].scanAccumulate(source.stream, Repr(Vector.empty, Vector.empty)) { (acc, mut) =>
-      def insertion(index: Int, elem: A): (Repr, RSeqMutation[A2]) = {
+      def insertion(index: Int, elem: A): (Repr, RSeqMutation[A]) = {
         val (src, idx) = acc.dst.sortedInsert(elem) // todo: use tree based impl
         val dst        = acc.src.patch(index, Iterable.single(elem), 0)
         (Repr(src, dst), Insert(idx, elem))

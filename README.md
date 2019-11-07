@@ -30,7 +30,7 @@ input ++= List(10, 11, 12)       // => AppendAll(List(20, 22, 24))
 input.patch(4, List(5, 6, 7), 0) // => Patch(3, List(10, 12, 14), 0)
 ```
 
-To input into an `RSeq` you can either create one directly from an `Observable[RSeqEvent]` using `RSeq.from(source)`,
+To input into an `RSeq` you can either create one directly from an `Observable[RSeqEvent]` using `RSeq.lift(source)`,
 or you can use a `VBuffer` which is analogous to a `scala.collection.mutable.Buffer` and can be created by supplying any `Subject`.
 
 ## Warning

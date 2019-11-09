@@ -31,6 +31,8 @@ object RSeqMutations {
       extends RSeqMutation[A]
 }
 
+trait RSeqOps[+A, +G[_], +CC[_, _[_]], +C] extends RIterableOps[A, G, CC, C]
+
 trait RSeq[+A, +G[_]] extends RIterable[A, G] with RSeqOps[A, G, RSeq, RSeq[A, G]] { self =>
   type M <: RSeqMutation[A]
 
@@ -41,4 +43,3 @@ trait RSeq[+A, +G[_]] extends RIterable[A, G] with RSeqOps[A, G, RSeq, RSeq[A, G
     new OperatorSorted[A2, G, G2](self)
 }
 
-trait RSeqOps[+A, +G[_], +CC[_, _[_]], +C] extends RIterableOps[A, G, CC, C]

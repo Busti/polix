@@ -43,3 +43,10 @@ trait RSeq[+A, +G[_]] extends RIterable[A, G] with RSeqOps[A, G, RSeq, RSeq[A, G
     new OperatorSorted[A2, G, G2](self)
 }
 
+object RSeq {
+  def lift[A, G[_]](source: G[RSeqMutation[A]]): RSeq[A, G] = new RSeq[A, G] {
+    type M = RSeqMutation[A]
+
+    override def stream: G[RSeqMutation[A]] = source
+  }
+}

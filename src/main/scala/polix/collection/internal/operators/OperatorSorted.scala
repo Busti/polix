@@ -10,6 +10,8 @@ class OperatorSorted[A, G[_], G2[x] >: G[x] : Scannable](
 )(
   implicit ord: Ordering[A]
 ) extends RSeq[A, G2] {
+  type M = RSeqMutation[A]
+
   case class Repr(src: Seq[A], dst: Seq[A])
 
   override def stream: G2[RSeqMutation[A]] =
@@ -41,9 +43,9 @@ class OperatorSorted[A, G[_], G2[x] >: G[x] : Scannable](
           (Repr(acc.src.updated(index, elem), dst), Combined(prevDstIndex, idx, elem))
         case Combined(indexRemoval, indexInsertion, elem) =>
           val prevRemElem     = acc.src(indexRemoval)
-          val src = acc.src.remove(indexRemoval).insert(indexInsertion, elem)
+          val src             = acc.src.remove(indexRemoval).insert(indexInsertion, elem)
           val prevDstRemIndex = acc.dst.indexOf(prevRemElem)
-          val (dst, idx) = acc.dst.remove(prevDstRemIndex).sortedInsert(elem)
+          val (dst, idx)      = acc.dst.remove(prevDstRemIndex).sortedInsert(elem)
           (Repr(src, dst), Combined(prevDstRemIndex, idx, elem))
       }
     }

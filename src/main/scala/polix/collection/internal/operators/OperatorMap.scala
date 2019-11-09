@@ -8,6 +8,8 @@ class OperatorMap[A, B, G[_], G2[x] >: G[x] : Functor](
   source: RSeq[A, G],
   f: A => B
 ) extends RSeq[B, G2] {
+  type M = RSeqMutation[B]
+
   override def stream: G2[RSeqMutation[B]] = Functor[G2].map(source.stream) {
     case Append(elem)                                 => Append(f(elem))
     case Prepend(elem)                                => Prepend(f(elem))

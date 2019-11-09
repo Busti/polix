@@ -2,6 +2,8 @@ package polix.collection
 
 import java.util
 
+import scala.language.higherKinds
+
 import cats.Functor
 import polix.collection.RSeqMutations._
 import polix.collection.internal.operators.{OperatorMap, OperatorSorted}
@@ -9,7 +11,6 @@ import polix.reactive.Scannable
 import polix.util.SeqUtils._
 
 import scala.collection.IterableOnce
-import scala.language.{higherKinds, reflectiveCalls}
 
 object RSeqMutations {
   sealed trait RSeqMutation[+A]

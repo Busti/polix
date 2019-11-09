@@ -1,5 +1,7 @@
 package polix.collection.internal.operators
 
+import scala.language.higherKinds
+
 import polix.collection.RSeq
 import polix.collection.RSeqMutations._
 import polix.reactive.Scannable

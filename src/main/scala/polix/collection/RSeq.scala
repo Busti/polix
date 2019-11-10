@@ -31,20 +31,21 @@ object RSeqMutations {
       extends RSeqMutation[A]
 }
 
-trait RSeqOps[+A, +G[_], +CC[_, _[_]], +C] extends RIterableOps[A, G, CC, C]
+trait RSeqOps[+G[_], +A, +CC[_[_], _], +C] extends RIterableOps[G, A, CC, C]
 
-trait RSeq[+A, +G[_]] extends RIterable[A, G] with RSeqOps[A, G, RSeq, RSeq[A, G]] { self =>
+trait RSeq[+G[_], +A] extends RIterable[G, A] with RSeqOps[G, A, RSeq, RSeq[G, A]] {
+  self =>
   type M <: RSeqMutation[A]
 
-  def map[B, G2[x] >: G[x] : Functor](f: A => B): RSeq[B, G2] =
-    new OperatorMap[A, B, G, G2](self, f)
+  def map[G2[x] >: G[x] : Functor, B](f: A => B): RSeq[G2, B] =
+    new OperatorMap[G, G2, A, B](self, f)
 
-  def sorted[A2 >: A, G2[x] >: G[x] : Scannable](implicit ord: Ordering[A2]): RSeq[A2, G2] =
-    new OperatorSorted[A2, G, G2](self)
+  def sorted[G2[x] >: G[x] : Scannable, A2 >: A](implicit ord: Ordering[A2]): RSeq[G2, A2] =
+    new OperatorSorted[G, G2, A2](self)
 }
 
 object RSeq {
-  def lift[A, G[_]](source: G[RSeqMutation[A]]): RSeq[A, G] = new RSeq[A, G] {
+  def lift[G[_], A](source: G[RSeqMutation[A]]): RSeq[G, A] = new RSeq[G, A] {
     type M = RSeqMutation[A]
 
     override def stream: G[RSeqMutation[A]] = source

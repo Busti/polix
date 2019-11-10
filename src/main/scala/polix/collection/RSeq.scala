@@ -35,7 +35,7 @@ trait RSeqOps[+G[_], +A, +CC[_[_], _], +C] extends RIterableOps[G, A, CC, C]
 
 trait RSeq[+G[_], +A] extends RIterable[G, A] with RSeqOps[G, A, RSeq, RSeq[G, A]] {
   self =>
-  type M <: RSeqMutation[A]
+  type M = RSeqMutation[A]
 
   def map[G2[x] >: G[x] : Functor, B](f: A => B): RSeq[G2, B] =
     new OperatorMap[G, G2, A, B](self, f)
@@ -46,7 +46,7 @@ trait RSeq[+G[_], +A] extends RIterable[G, A] with RSeqOps[G, A, RSeq, RSeq[G, A
 
 object RSeq {
   def lift[G[_], A](source: G[RSeqMutation[A]]): RSeq[G, A] = new RSeq[G, A] {
-    type M = RSeqMutation[A]
+    type M <: RSeqMutation[A]
 
     override def stream: G[RSeqMutation[A]] = source
   }

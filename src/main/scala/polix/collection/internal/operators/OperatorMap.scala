@@ -7,18 +7,18 @@ import polix.collection.RSeq
 import polix.collection.RSeqMutations._
 
 class OperatorMap[G[_], G2[x] >: G[x] : Functor, A, B](
-                                                        source: RSeq[G, A],
-                                                        f: A => B
-                                                      ) extends RSeq[G2, B] {
+  source: RSeq[G, A],
+  f: A => B
+) extends RSeq[G2, B] {
   type M = RSeqMutation[B]
 
   override def stream: G2[RSeqMutation[B]] = Functor[G2].map(source.stream) {
-    case Append(elem) => Append(f(elem))
-    case Prepend(elem) => Prepend(f(elem))
-    case Insert(index, elem) => Insert(index, f(elem))
-    case Remove(index) => Remove(index)
-    case RemoveElem(elem) => RemoveElem(f(elem))
-    case Update(index, elem) => Update(index, f(elem))
+    case Append(elem)                                 => Append(f(elem))
+    case Prepend(elem)                                => Prepend(f(elem))
+    case Insert(index, elem)                          => Insert(index, f(elem))
+    case Remove(index)                                => Remove(index)
+    case RemoveElem(elem)                             => RemoveElem(f(elem))
+    case Update(index, elem)                          => Update(index, f(elem))
     case Combined(indexRemoval, indexInsertion, elem) => Combined(indexRemoval, indexInsertion, f(elem))
     case AppendAll(elems)                             => AppendAll(elems.iterator.map(f))
     case PrependAll(elems)                            => PrependAll(elems.iterator.map(f))

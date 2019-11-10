@@ -8,10 +8,10 @@ import polix.reactive.Scannable
 import polix.util.SeqUtils._
 
 class OperatorSorted[G[_], G2[x] >: G[x] : Scannable, A](
-                                                          source: RSeq[G, A]
-                                                        )(
-                                                          implicit ord: Ordering[A]
-                                                        ) extends RSeq[G2, A] {
+  source: RSeq[G, A]
+)(
+  implicit ord: Ordering[A]
+) extends RSeq[G2, A] {
   type M = RSeqMutation[A]
 
   case class Repr(src: Seq[A], dst: Seq[A])
@@ -20,7 +20,7 @@ class OperatorSorted[G[_], G2[x] >: G[x] : Scannable, A](
     Scannable[G2].scanAccumulate(source.stream, Repr(Vector.empty, Vector.empty)) { (acc, mut) =>
       def insertion(index: Int, elem: A): (Repr, RSeqMutation[A]) = {
         val (src, idx) = acc.dst.sortedInsert(elem) // todo: use tree based impl
-        val dst = acc.src.patch(index, Iterable.single(elem), 0)
+        val dst        = acc.src.patch(index, Iterable.single(elem), 0)
         (Repr(src, dst), Insert(idx, elem))
       }
 

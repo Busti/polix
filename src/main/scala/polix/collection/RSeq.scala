@@ -50,4 +50,10 @@ object RSeq {
 
     override def stream: G[RSeqMutation[A]] = source
   }
+
+  def drop[G[_] : Functor, A](from: RSeq[G, A]): G[RSeqMutation[A]] = new RSeq[G, A] {
+    type M = RSeqMutation[A]
+
+    def stream: G[RSeqMutation[A]] = Functor[G].map(from.stream)(m => m)
+  }.stream
 }

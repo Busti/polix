@@ -17,3 +17,5 @@ libraryDependencies ++= Seq(
   "io.monix"      %% "monix"       % "3.0.0" % "test",
   "co.fs2"        %% "fs2-core"    % "2.0.1" % "test"
 )
+
+publishTo := sonatypePublishTo.value
